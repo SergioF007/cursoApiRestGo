@@ -3,6 +3,8 @@ package server
 import (
 	"context"
 	"errors"
+	"log"
+	"net/http"
 
 	"github.com/gorilla/mux"
 )
@@ -49,4 +51,15 @@ func NewServer(ctx context.Context, config *Config) (*Broker, error) {
 		config: config,
 		router: mux.NewRouter(),
 	}, nil
+}
+
+// Creamos la funcion que se encarga le levantarce o ejecutarce
+func (b *Broker) Start(binder func(s Server, r *mux.Router)) {
+	b.router = mux.NewRouter() // para crear nuevos router
+	binder(b, b.router)
+	log.Println("Starting server on port", b.Config().Port)
+	if err := http.ListenAndServe(b.Config().Port, b.router); err != nil {
+		log.Fatal("ListenAndServe:", err)
+	}
+
 }
